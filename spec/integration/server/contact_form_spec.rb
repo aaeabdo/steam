@@ -78,6 +78,10 @@ describe 'ContactForm' do
           expect(response.status).to eq 200
         end
 
+        it 'displays a global error message' do
+          expect(response.body.to_s).to include "Form with errors"
+        end
+
         it 'displays errors' do
           expect(response.body.to_s).to include "can't be blank"
         end
@@ -102,6 +106,10 @@ describe 'ContactForm' do
 
         it 'returns a success status' do
           expect(response.status).to eq 200
+        end
+
+        it "doesn't display a global error message" do
+          expect(response.body.to_s).not_to include "Form with errors"
         end
 
         it 'displays a success message' do
@@ -130,6 +138,7 @@ describe 'ContactForm' do
     let(:url) { '/events' }
     let(:params) { {
       'content_type_slug' => 'messages',
+      'some_variable'     => '42',
       'entry' => { 'name' => 'John', 'email' => 'j@doe.net', 'message' => 'Bla bla' } } }
     let(:response) { post_contact_form(url, params) }
     let(:status) { response.status }
@@ -158,6 +167,10 @@ describe 'ContactForm' do
 
       it 'displays a success message' do
         expect(response.body.to_s).to include 'Thank you John'
+      end
+
+      it 'stores hidden fields from the form' do
+        expect(response.body.to_s).to include 'Some variable: 42'
       end
 
     end

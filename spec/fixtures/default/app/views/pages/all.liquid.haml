@@ -1,7 +1,7 @@
 ---
 title: All the pages
 listed: false
-published: false
+published: true
 ---
 {% extends parent %}
 {% block content %}
@@ -10,4 +10,7 @@ published: false
 <li>{{ page.title }}</li>
 {% endfor %}
 </ul>
+
+<!-- TEST -->{{ site.index.children | map: 'title' | join: " - " }}<!-- TEST -->
+
 {% endblock %}

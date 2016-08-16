@@ -73,7 +73,7 @@ module Locomotive::Steam
           'today'             => Date.today,
           'mode'              => Locomotive::Steam.configuration.mode,
           'wagon'             => Locomotive::Steam.configuration.mode == :test,
-          'live_editing'      => !!env['steam.live_editing']
+          'live_editing'      => live_editing?
         }
       end
 
@@ -98,14 +98,15 @@ module Locomotive::Steam
 
       def _request_liquid_assigns
         {
-          'path'        => request.path,
-          'fullpath'    => request.fullpath,
-          'url'         => request.url,
-          'ip_address'  => request.ip,
-          'post?'       => request.post?,
           'base_url'    => request.base_url,
+          'fullpath'    => request.fullpath,
+          'ip_address'  => request.ip,
+          'mounted_on'  => mounted_on,
+          'path'        => request.path,
+          'post?'       => request.post?,
+          'referer'     => request.referer,
+          'url'         => request.url,
           'user_agent'  => request.user_agent,
-          'mounted_on'  => mounted_on
         }
       end
 
