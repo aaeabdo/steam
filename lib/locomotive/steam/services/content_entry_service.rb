@@ -34,6 +34,8 @@ module Locomotive
             _repository.create(entry)
           end
 
+          logEntryOperation(type_slug, decorated_entry)
+
           _json_decorate(decorated_entry, as_json)
         end
       end
@@ -48,7 +50,23 @@ module Locomotive
             _repository.update(entry)
           end
 
+          logEntryOperation(type_slug, decorated_entry)
+
           _json_decorate(decorated_entry, as_json)
+        end
+      end
+
+      def update_decorated_entry(decorated_entry, attributes)
+        with_repository(decorated_entry.content_type) do |_repository|
+          entry = decorated_entry.__getobj__
+
+          entry.change(clean_attributes(attributes))
+
+          _repository.update(entry)
+
+          logEntryOperation(decorated_entry.content_type.slug, decorated_entry)
+
+          decorated_entry
         end
       end
 
@@ -65,7 +83,19 @@ module Locomotive
         content_type_repository.by_slug(slug)
       end
 
+      def logger
+        Locomotive::Common::Logger
+      end
+
       private
+
+      def logEntryOperation(type_slug, entry)
+        if (json = entry.as_json)['errors'].blank?
+          logger.info "[#{type_slug}] Entry persisted with success. #{json}"
+        else
+          logger.error "[#{type_slug}] Failed to persist entry. #{json}"
+        end
+      end
 
       def with_repository(type_or_slug)
         type = type_or_slug.respond_to?(:fields) ? type_or_slug : get_type(type_or_slug)

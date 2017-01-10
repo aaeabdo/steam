@@ -63,7 +63,7 @@ module Locomotive
         end
 
         register :action do
-          Steam::ActionService.new(current_site, email, content_entry)
+          Steam::ActionService.new(current_site, email, content_entry, external_api)
         end
 
         register :content_entry do
@@ -116,6 +116,10 @@ module Locomotive
 
         register :email do
           Steam::EmailService.new(page_finder, liquid_parser, asset_host, configuration.mode == :test)
+        end
+
+        register :auth do
+          Steam::AuthService.new(content_entry, email)
         end
 
         register :cache do
