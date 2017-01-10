@@ -107,6 +107,7 @@ module Locomotive::Steam
           'referer'     => request.referer,
           'url'         => request.url,
           'user_agent'  => request.user_agent,
+          'host'        => request.host
         }
       end
 
