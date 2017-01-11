@@ -68,7 +68,7 @@ module Locomotive
                 begin
                   case field.type
                   when :belongs_to
-                    hash[name] = liquify_entry(@_source.send(name))._slug
+                    hash[name] = liquify_entry(@_source.send(name))._slug if hash["#{name}_id"].present?
                   when :many_to_many
                     hash[name] = (@_source.send(name) || []).all.map { |e| liquify_entry(e)._slug }.compact
                   when :file
