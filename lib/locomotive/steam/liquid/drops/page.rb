@@ -4,7 +4,7 @@ module Locomotive
       module Drops
         class Page < I18nBase
 
-          delegate :fullpath, :depth, :seo_title, :meta_keywords, :meta_description, :redirect_url, :handle, to: :@_source
+          delegate :position, :fullpath, :depth, :seo_title, :meta_keywords, :meta_description, :redirect_url, :handle, to: :@_source
           delegate :listed?, :published?, :redirect?, :is_layout?, :templatized?, to: :@_source
 
           def title
@@ -30,7 +30,14 @@ module Locomotive
           end
 
           def breadcrumbs
-            @breadcrumbs ||= liquify(*repository.ancestors_of(@_source))
+            return @breadcrumbs if @breadcrumbs
+
+            # remove the last one and replace it by the current instance
+            # which may have a valid reference to a content entry (if templatized)
+            pages = liquify(*repository.ancestors_of(@_source))
+            pages.pop
+
+            @breadcrumbs = pages + [self]
           end
 
           def children
