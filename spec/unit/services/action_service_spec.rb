@@ -6,7 +6,9 @@ describe Locomotive::Steam::ActionService do
   let(:site)          { instance_double('Site', as_json: site_hash ) }
   let(:email_service) { instance_double('EmailService') }
   let(:entry_service) { instance_double('ContentService') }
-  let(:service)       { described_class.new(site, email_service, entry_service) }
+  let(:api_service)   { instance_double('ExternalAPIService') }
+  let(:redirection_service) { instance_double('PageRedirectionService') }
+  let(:service)       { described_class.new(site, email_service, content_entry: entry_service, api: api_service, redirection: redirection_service) }
 
   describe '#run' do
 
@@ -19,6 +21,30 @@ describe Locomotive::Steam::ActionService do
     subject { service.run(script, params, context) }
 
     it { is_expected.to eq 2.0 }
+
+    describe 'deal with exceptions' do
+
+      context 'wrong syntax' do
+
+        let(:script) { 'a +/ b * var;' }
+
+        it 'raises a meaningful exception' do
+          expect { subject }.to raise_error(Locomotive::Steam::ActionError, "eof or line terminator in regexp (line 2)")
+        end
+
+      end
+
+      context 'other error' do
+
+        let(:script) { 'a.b' }
+
+        it 'raises a meaningful exception' do
+          expect { subject }.to raise_error(Locomotive::Steam::ActionError, "identifier 'a' undefined")
+        end
+
+      end
+
+    end
 
     describe 'with params' do
 
@@ -162,6 +188,36 @@ describe Locomotive::Steam::ActionService do
             'from'    => 'did@locomotivecms.com',
             'subject' => 'Happy Easter' }, context)
           subject
+        end
+
+      end
+
+      describe 'callAPI' do
+
+        let(:script) { "callAPI('POST', 'https://api.stripe.com/v1/charges', { username: 'abcdefghij', data: { token: '123456789' } })" }
+
+        it 'forwards the action to the external api service' do
+          expect(api_service).to receive(:consume).with(
+            'https://api.stripe.com/v1/charges', {
+              method: 'POST',
+              username: 'abcdefghij',
+              data: {
+                token: '123456789'
+              }
+            }, true
+          )
+          subject
+        end
+
+      end
+
+      describe 'redirectTo' do
+
+        let(:script) { "redirectTo('about-us');" }
+
+        it 'stops the rendering process and redirects the user to another page' do
+          expect(redirection_service).to receive(:redirect_to).with('about-us', nil).and_raise(Locomotive::Steam::RedirectionException.new('/about-us'))
+          expect { subject }.to raise_exception(Locomotive::Steam::RedirectionException, 'Redirect to /about-us')
         end
 
       end
