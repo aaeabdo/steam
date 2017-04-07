@@ -1,4 +1,5 @@
 require 'chronic'
+require 'bcrypt'
 
 module Locomotive::Steam
 
@@ -79,7 +80,12 @@ module Locomotive::Steam
       hash = {}
 
       # default attributes
-      _attributes = %i(_id _slug _label _visible _position content_type_slug created_at updated_at)
+      _attributes = %i(_id _slug _visible _position content_type_slug created_at updated_at)
+
+      # stack level too deep raised if the _label field is an association (belongs_to, ...etc)
+      unless content_type.fields_by_name[content_type.label_field_name].is_relationship?
+        _attributes << :_label
+      end
 
       # dynamic attributes
       _attributes += content_type.persisted_field_names
@@ -129,6 +135,22 @@ module Locomotive::Steam
 
     def _cast_float(field)
       _cast_convertor(field.name, &:to_f)
+    end
+
+    def _cast_json(field)
+      _cast_convertor(field.name) do |value|
+        if value.respond_to?(:to_h)
+          value
+        else
+          value.blank? ? nil : JSON.parse(value)
+        end
+      end
+    end
+
+    def _cast_password(field)
+      _cast_convertor(:"#{field.name}_hash") do |value|
+        value.blank? ? nil : BCrypt::Password.new(value)
+      end
     end
 
     def _cast_file(field)

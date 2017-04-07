@@ -8,9 +8,10 @@ group :development do
   # gem 'locomotivecms_models', '~> 0.0.1', path: '../models'
   # gem 'locomotivecms_models', '0.0.1.pre.alpha'
   # gem 'locomotivecms-liquid', path: '/Users/didier/Documents/LocomotiveCMS/gems/liquid'
+  # gem 'duktape', path: '/Users/didier/Documents/NoCoffee/ProjectsX/duktape.rb'
+  # gem 'duktape', github: 'judofyr/duktape.rb', ref: '20ef6a5'
   # gem 'thin'
   gem 'puma'
-  gem 'yui-compressor',     '~> 0.12.0'
   gem 'haml',               '~> 4.0.6'
 
   gem 'rack-mini-profiler', '~> 0.10.1'
@@ -30,10 +31,10 @@ group :test do
 
   gem 'rack-test',          '~> 0.6.3'
 
-  gem 'codeclimate-test-reporter',  '~> 0.4.7',  require: false
-  gem 'coveralls',                  '~> 0.8.1', require: false
+  gem 'codeclimate-test-reporter',  '~> 0.4.7',   require: false
+  gem 'coveralls',                  '~> 0.8.1',   require: false
 end
 
 platform :ruby do
-  ruby '2.2.3'
+  ruby '2.3.3'
 end

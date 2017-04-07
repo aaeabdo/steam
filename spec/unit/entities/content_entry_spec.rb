@@ -72,7 +72,7 @@ describe Locomotive::Steam::ContentEntry do
 
   describe '#to_hash' do
 
-    let(:fields)      { [instance_double('TitleField', name: :title, type: :string), instance_double('PictureField', name: :picture, type: :file, localized: true)] }
+    let(:fields)      { [instance_double('TitleField', name: :title, type: :string, is_relationship?: false), instance_double('PictureField', name: :picture, type: :file, localized: true)] }
     let(:attributes)  { { id: 42, title: 'Hello world', _slug: 'hello-world', picture: Locomotive::Steam::Models::I18nField.new(:picture, fr: 'foo.png', en: 'bar.png'), custom_fields_recipe: ['hello', 'world'], _type: 'Entry' } }
 
     subject { content_entry.to_hash }
@@ -101,7 +101,7 @@ describe Locomotive::Steam::ContentEntry do
 
   describe '#as_json' do
 
-    let(:fields)      { [instance_double('TitleField', name: :title, type: :string), instance_double('PictureField', name: :picture, type: :file, localized: true)] }
+    let(:fields)      { [instance_double('TitleField', name: :title, type: :string, is_relationship?: false), instance_double('PictureField', name: :picture, type: :file, localized: true)] }
     let(:attributes)  { { id: 42, title: 'Hello world', _slug: 'hello-world', picture: Locomotive::Steam::Models::I18nField.new(:picture, fr: 'foo.png', en: 'bar.png'), custom_fields_recipe: ['hello', 'world'], _type: 'Entry' } }
     let(:decorated)   { Locomotive::Steam::Decorators::I18nDecorator.new(content_entry, :fr, :en) }
 
@@ -226,6 +226,16 @@ describe Locomotive::Steam::ContentEntry do
       let(:attributes)  { { my_field_id: 42 } }
       before { expect(field.select_options).to receive(:find).with(42).and_return(option) }
       it { is_expected.to eq({ en: 'Category #1', fr: 'Categorie #1' }) }
+    end
+
+    context 'a json' do
+      let(:field_type)  { :json }
+      let(:value)       { '{"foo":42}' }
+      it { is_expected.to eq({ 'foo' => 42 }) }
+      context 'localized' do
+        let(:value) { build_i18n_field(en: { 'foo' => 42 }, fr: '[1, 2, 3]') }
+        it { expect(subject.translations).to eq('en' => { 'foo' => 42 }, 'fr' => [1, 2, 3]) }
+      end
     end
 
   end
