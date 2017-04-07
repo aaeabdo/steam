@@ -20,7 +20,7 @@ module Locomotive::Steam
           redirect_to(page.redirect_url, page.redirect_type)
         else
           content = parse_and_render_liquid
-          render_response(content, page.not_found? ? 404: 200, page.response_type)
+          render_response(content, page.not_found? ? 404 : 200, page.response_type)
         end
       end
 
@@ -37,7 +37,12 @@ module Locomotive::Steam
 
       def parse_and_render_liquid
         document = services.liquid_parser.parse(page)
-        document.render(liquid_context)
+        begin
+          document.render(liquid_context)
+        rescue Locomotive::Steam::ParsingRenderingError => e
+          e.file = page.template_path if e.file.blank?
+          raise e
+        end
       end
 
       def liquid_context
@@ -62,7 +67,8 @@ module Locomotive::Steam
         _default_liquid_assigns.merge(
           _locale_liquid_assigns.merge(
             _request_liquid_assigns.merge(
-              _steam_liquid_assigns)))
+              _http_actions_liquid_assigns.merge(
+                _steam_liquid_assigns))))
       end
 
       def _default_liquid_assigns
@@ -100,14 +106,24 @@ module Locomotive::Steam
         {
           'base_url'    => request.base_url,
           'fullpath'    => request.fullpath,
+          'http_method' => request.request_method,
           'ip_address'  => request.ip,
           'mounted_on'  => mounted_on,
           'path'        => request.path,
-          'post?'       => request.post?,
           'referer'     => request.referer,
           'url'         => request.url,
           'user_agent'  => request.user_agent,
-          'host'        => request.host
+          'host'        => request.host_with_port
+        }
+      end
+
+      def _http_actions_liquid_assigns
+        {
+          'head?'    => request.head?,
+          'get?'    => request.get?,
+          'post?'   => request.post?,
+          'put?'    => request.put?,
+          'delete?' => request.delete?
         }
       end
 
